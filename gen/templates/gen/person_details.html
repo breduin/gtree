@@ -1,12 +1,34 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>{{ person.lastname|upper }}</title>
-</head>
-<body>
+{% extends 'base.html' %}
 
-<h2>{{ person.lastname|upper }} {{ person.firstname }}  {{ person.middlename }}</h2>
 
-</body>
-</html>
+{% block content %}
+
+<h1 class="title">{{ person.lastname|upper }} {{ person.firstname }}  {{ person.middlename }}</h1>
+
+<div class="subtitle">{{ person.birthdate|date:"j E Y" }} г. {% if person.date_of_death %} - {{ person.date_of_death|date:"j E Y"  }} г. {% endif %}</div>
+
+Родители:
+<div class="content">
+    <ul>
+        <li>Отец: <a href=" {{ person.get_parents.father.get_absolute_url }} ">{{ person.get_parents.father|default_if_none:"не указан" }}</a> </li>
+        <li>Мать: <a href=" {{ person.get_parents.mother.get_absolute_url }} ">{{ person.get_parents.mother|default_if_none:"не указана" }}</a> </li>
+    </ul>
+</div>
+
+Брак(и):
+<div class="content">
+    <ul>
+    {% for marriage in person.get_marriages_with_spouses %}
+        <li>{{ marriage.0.date|date:"Y" }}, супруг(а) <a href="{{ marriage.1.get_absolute_url }}">{{ marriage.1 }}</a> </li>
+    {% endfor %}
+    </ul>
+</div>
+
+Дети:
+<div class="content">
+    {% for child in person.get_children %}
+    <a href="{{ child.get_absolute_url }}">{{ child }}</a></br>
+    {% endfor %}
+</div>
+
+{% endblock %}

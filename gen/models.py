@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 
 
 def initials(words=[]) -> str:
@@ -64,13 +65,80 @@ class Person(models.Model):
                                       null=True,
                                       default=''
                                       )
+    birth_marriage = models.ForeignKey('Marriage',
+                                       on_delete=models.PROTECT,
+                                       verbose_name='Родительский союз',
+                                       related_name='child',
+                                       blank=True,
+                                       null=True)
 
     def __str__(self):
-        return f"{self.lastname} {self.firstname} {self.middlename}, р. {self.birthdate}"
+        return f"{self.lastname} {self.firstname} {self.middlename}, {self.birthdate.year} г.р."
 
     def get_absolute_url(self):
         from django.urls import reverse
         return reverse('personview', args=[str(self.pk)])
+
+    def get_spouses(self):
+        """
+        Returns a list of all spouses of the person
+        """
+        spouses = []
+        if self.sex == 'm':
+            qs = Marriage.objects.filter(husband__pk=self.pk)
+            for item in qs:
+                spouses.append(item.wife)
+        else:
+            qs = Marriage.objects.filter(wife__pk=self.pk)
+            for item in qs:
+                spouses.append(item.husband)
+        return spouses
+
+    def get_marriages(self):
+        """
+        Returns a query with all marriages of the person
+        """
+        marriages = Marriage.objects.filter(Q(husband__pk=self.pk) | Q(wife__pk=self.pk)).order_by('date')
+
+        return marriages
+
+    def get_marriages_with_spouses(self):
+        """
+        Returns a list of all marriages of the person together with its spouse
+        [[marriage, spouse],[marriage, spouse],]
+        """
+        qs = self.get_marriages()
+        marriages = []
+        for item in qs:
+            spouse = item.husband if item.wife.pk==self.pk else item.wife
+            marriages.append([item, spouse])
+
+        return marriages
+
+    def get_children(self):
+        """
+        Returns a list of all children of the person
+        """
+        marriages = Marriage.objects.filter(Q(husband__pk=self.pk) | Q(wife__pk=self.pk)).order_by('date')
+        all_children = []
+        for item in marriages:
+            children = item.child.all()
+            if children:
+                for c in children:
+                    all_children.append(c)
+
+        return all_children
+
+    def get_parents(self):
+        """
+        Returns a dict with parents of the person
+        """
+        parents_marriage = self.birth_marriage
+        parents = {}
+        if parents_marriage:
+            parents = {'father': parents_marriage.husband, 'mother': parents_marriage.wife}
+
+        return parents
 
 
 class Marriage(models.Model):
@@ -91,7 +159,7 @@ class Marriage(models.Model):
                                        blank=True,
                                        null=True
                                        )
-    husband = models.ForeignKey(Person, on_delete=models.PROTECT, related_name='husbund')
+    husband = models.ForeignKey(Person, on_delete=models.PROTECT, related_name='husband')
     wife = models.ForeignKey(Person, on_delete=models.PROTECT, related_name='wife')
 
     class Meta:
