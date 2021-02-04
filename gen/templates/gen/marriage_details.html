@@ -1,12 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
 
-<h2>{{ marriage }}</h2>
 
-</body>
-</html>
+{% block content %}
+
+<h1 class="title">{{ marriage }}</h1>
+
+<div class="content">
+    <ul>
+        <li>Дата заключения: {{ marriage.date|date:"j E Y" }} г.</li>
+{% if marriage.date_of_divorce %}
+        <li>Дата расторжения: {{ marriage.date_of_divorce|date:"j E Y" }} г.</li>
+{% endif %}
+    </ul>
+ </div>
+
+
+
+Супруги:
+<div class="content">
+    <ul>
+        <li>Муж: <a href=" {{ marriage.husband.get_absolute_url }} ">{{ marriage.husband|default_if_none:"не указан" }}</a> </li>
+        <li>Жена: <a href=" {{ marriage.wife.get_absolute_url }} ">{{ marriage.wife|default_if_none:"не указана" }}</a> </li>
+    </ul>
+</div>
+
+Дети:
+<div class="content">
+    <ul>
+    {% for child in marriage.get_children %}
+    <li><a href="{{ child.get_absolute_url }}">{{ child }}</a></li>
+    {% endfor %}
+    </ul>
+</div>
+
+{% endblock %}

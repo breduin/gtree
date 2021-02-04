@@ -177,3 +177,15 @@ class Marriage(models.Model):
     def get_absolute_url(self):
         from django.urls import reverse
         return reverse('marriageview', args=[str(self.pk)])
+
+    def get_children(self):
+        """
+        Returns a list of all children of the marriage
+        """
+        children = self.child.all()
+        all_children = []
+        if children:
+            for c in children:
+                all_children.append(c)
+
+        return all_children

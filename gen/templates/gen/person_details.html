@@ -19,7 +19,7 @@
 <div class="content">
     <ul>
     {% for marriage in person.get_marriages_with_spouses %}
-        <li>{{ marriage.0.date|date:"Y" }}, супруг(а) <a href="{{ marriage.1.get_absolute_url }}">{{ marriage.1 }}</a> </li>
+        <li><a href="{{ marriage.0.get_absolute_url }}">{{ marriage.0.date|date:"Y" }}</a>, супруг(а) <a href="{{ marriage.1.get_absolute_url }}">{{ marriage.1 }}</a> </li>
     {% endfor %}
     </ul>
 </div>
